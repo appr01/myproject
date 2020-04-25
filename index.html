@@ -1,0 +1,1103 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+   <script src="https://d3js.org/d3.v5.min.js"></script>
+   <style>
+     body{
+       background-color: Snow;
+     }
+   svg{
+       border: thin solid gray;
+   }
+   text{
+      font-size: 16px;
+      font-family: Open Sans, sans-serif;
+   }
+    text.title{
+       font-size: 24px;
+       font-weight: 700;
+    }
+    text.subTitle{
+       font-weight: 500;
+       fill: #777777;
+    }
+    text.caption{
+       font-weight: 400;
+       font-size: 14px;
+       fill: #777777;
+    }
+    text.label{
+       font-weight: 600;
+    }
+
+    text.valueLabel{
+       font-weight: 300;
+    }
+
+    text.yearText{
+       font-size: 64px;
+       font-weight: 700;
+       opacity: 0.25;
+    }
+    .tick text {
+       fill: #777777;
+    }
+    .xAxis .tick:nth-child(2) text {
+       text-anchor: start;
+    }
+    .tick line {
+       shape-rendering: CrispEdges;
+       stroke: #dddddd;
+    }
+    .tick line.origin{
+       stroke: black;
+    }
+    path.domain{
+       display: none;
+    }
+    .content {
+  display: flex;
+  justify-content: space-between;
+  
+  margin: 0 auto;
+  
+  padding: 10px 0;
+   }
+   </style>
+</head>
+  <body>
+   <div class ="content">
+     <br>
+    <button  onclick="play()" id="animate" value="Play">START</button>  
+    <button onclick="reset()" id="reset">Reset </button>
+    
+     <select  id ="type" >
+       <option value ="Cases">Cases</option>
+       <option value ="Deaths">Deaths</option>
+       <option value ="Recovered">Recovered</option>
+       </select>
+ 
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <select id="selectButton"></select>
+     <select id="selectButton_1"></select>
+     <br>
+     <br>
+   </div>
+
+    <div >
+       <div id="my_dataviz_1"></div>
+    </div>
+    <center><div id="my_dataviz"></div></center>
+        <script> 
+    let am;
+    const top_n = 12;
+    const height = 720;
+    const width = 1280;
+    const tickDuration  = 400; //delay of an animation
+    const delayDuration = 800; //delay between two years
+    let cdata;
+    let ddata;
+    let rdata;
+    let TCdata;
+    let TDdata;
+    let TRdata;
+    let Tempdata;
+    let countrylist;
+    let combinedData;
+    let text ;
+    const dayStart     = 1;
+    const dayEnd       = 92 ;
+    var intial = new Date("JAN 22,2020 11:20:00");
+    let datee ;
+    var dum ;
+    var dum_1 ;
+    var title ;
+
+    var margin_1 = {top: 10, right: 100, bottom: 30, left: 30},
+    width_1 = 600 - margin_1.left - margin_1.right,
+    height_1 = 720 - margin_1.top - margin_1.bottom;
+
+    const svg_1 = d3.select("#my_dataviz_1").append("svg")
+   .attr("width", width)
+   .attr("height", height);
+
+    const svg_2 =d3.select("#my_dataviz_1").append("svg")
+    .attr("width",width_1 + margin_1.left + margin_1.right)
+    .attr("height",height_1 + margin_1.top + margin_1.bottom)
+    console.log(width_1 + margin_1.left + margin_1.right);
+    console.log(height_1 + margin_1.top + margin_1.bottom);
+  
+    const svg = d3.select("#my_dataviz")
+    .append("svg")
+    .attr("width", 1650)
+    .attr("height", 450)
+    const g1=svg.append("g")
+    .attr("transform", "translate(225,225)");
+    const g2=svg.append("g")
+    .attr("transform", "translate(1080,225)");
+  
+    var radius = Math.min(450, 450) / 2 - 40; 
+    var color_1 = d3.scaleOrdinal()
+     .domain(["Recovered", "Deadths", "Active"])
+     .range(d3.schemeDark2);
+
+    const margin = {
+    top: 80,
+    right: 0,
+    bottom: 5,
+    left: 0
+    };
+
+    const barPadding = (height-(margin.bottom+margin.top))/(top_n*5);
+
+
+
+    let day = dayStart;
+    function update_3(data)
+    {
+      console.log(3)
+      var data_ready_1;
+      var pie = d3.pie()
+       .value(function(d) {return d.value; })
+       .sort(function(a, b) {return d3.ascending(a.key, b.key);} ) // This make sure that group order remains the same in the pie chart
+       data_ready_1 = pie(d3.entries(data))
+      console.log(data_ready_1)
+      var u = g2.selectAll("path")
+      .data(data_ready_1)
+
+      u
+     .enter()
+     .append('path')
+     .merge(u)
+     //.transition()
+     //.duration(10)
+     .attr('d', d3.arc()
+     .innerRadius(0)
+     .outerRadius(radius)
+      )
+     .attr('fill', function(d){ return(color_1(d.data.key)) })
+     .attr("stroke", "white")
+     .style("stroke-450", "2px")
+     .style("opacity", 1)
+
+     // remove the group that is not present anymore
+     u
+     .exit()
+     .remove()
+
+    }
+
+    function update_2(data) {
+      console.log(2)
+      var data_ready_1;
+     // Compute the position of each group on the pie:
+   
+     var pie = d3.pie()
+       .value(function(d) {return d.value; })
+       .sort(function(a, b) {  return d3.ascending(a.key, b.key);} ) // This make sure that group order remains the same in the pie chart
+       data_ready_1 = pie(d3.entries(data))
+
+       var u = g1.selectAll("path")
+       .data(data_ready_1)
+
+       u
+       .enter()
+      .append('path')
+     .merge(u)
+     //.transition()
+     //.duration(10)
+     .attr('d', d3.arc()
+     .innerRadius(0)
+     .outerRadius(radius)
+      )
+     .attr('fill', function(d){ return(color_1(d.data.key)) })
+     .attr("stroke", "white")
+     .style("stroke-450", "2px")
+     .style("opacity", 1)
+
+     u
+     .exit()
+     .remove()
+    }
+     // map to data
+     var text_1,text_2,text_3,text_4;
+     var ke_1,ke_2;
+     var term =["Active","Deadths","Recovered"];
+     var dum_2=[],dum_3=[];
+    d3.csv("Combined data.csv").then(function(data) 
+    { 
+      console.log(data)
+      combinedData=data;
+       combinedData.filter(function (d){ if((d.Country) == "Afghanistan" ){
+         var a=+d.Recovered;
+         var b=+d.Deadths;
+         var c=(+d.Confirmed -(a+b));
+          dum= {Recovered : a,Deadths :b ,Active:c}
+          dum_1 = {Recovered : a,Deadths :b ,Active:c};
+          dum_2.push(c);
+          dum_2.push(b);
+          dum_2.push(a);
+          dum_3.push(c);
+          dum_3.push(b);
+          dum_3.push(a);
+          
+        //dum.push("Recovered "= a,"Deadths" =b ,"Confirmed"=c)
+       } 
+        })
+      console.log(dum)
+      console.log(dum_1)
+
+      ke_2=["Afghanistan"];
+      ke_1=["Afghanistan"];
+      term =["Active","Deadths","Recovered"]; 
+
+        text_3 = svg.selectAll(".txt_3").data(dum_2)
+        text_3.enter()
+              .append("text")
+              .merge(text_3)
+              .attr("x",660)
+                 .attr("y", function(d,i){return 50+40*i})
+                 .text(function(d){ console.log(d); return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "19px")
+                 .attr("fill", "black")
+                 .classed("txt_3",true);      
+
+        text_3.exit().remove();  
+
+        text_4 = svg.selectAll(".txt_4").data(dum_3)
+        text_4.enter()
+              .append("text")
+              .merge(text_4)
+              .attr("x",1510)
+                 .attr("y", function(d,i){return 50+40*i})
+                 .text(function(d){ console.log(d); return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "19px")
+                 .attr("fill", "black")
+                 .classed("txt_4",true);      
+
+        text_4.exit().remove();  
+
+       //  con
+      svg.selectAll(".txt_1").data(term).enter().append("text").attr("x",500).attr("y",function(d,i){return 50+40*i })
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "19px")
+                 .attr("fill", function(d){return color_1(d)})
+                 .classed("txt_1",true);     
+
+       svg.selectAll(".txt_2").data(term).enter().append("text").attr("x",1350).attr("y",function(d,i){return 50+40*i })
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "19px")
+                 .attr("fill", function(d){return color_1(d)})
+                 .classed("txt_2",true);      
+
+
+      text_1 = svg.selectAll(".mylab_1")
+                .data(ke_1);
+         text_1.enter()
+              .append("text")
+              .merge(text_1)
+              .attr("x",150)
+                 .attr("y", 435 )
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "23px")
+                 .attr("fill", "black")
+                 .classed("mylab_1",true);      
+
+        text_1.exit().remove();    
+
+
+        text_2 = svg.selectAll(".mylab_2")
+                .data(ke_2);
+         text_2.enter()
+              .append("text")
+              .merge(text_1)
+              .attr("x",1020)
+                 .attr("y", 435 )
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "23px")
+                 .attr("fill", "black")
+                 .classed("mylab_2",true);      
+
+        text_2.exit().remove();  
+
+
+     update_3(dum_1)
+     update_2(dum);
+    })
+
+    d3.csv("time_series_covid19_confirmed_global_duplicate.csv").then(function( data ) 
+    { 
+      cdata=data;
+      //console.log(cdata);
+      countrylist=cdata.map(function (d){ return d.Country});
+      //console.log(countrylist);
+     // drop();  
+    })
+    d3.csv("time_series_covid19_deaths_global_duplicate.csv").then(function( data ) 
+    { 
+      ddata=data;
+    })
+ 
+    d3.csv("recovered.csv").then(function( data ) 
+    { 
+      rdata=data;
+    })
+
+    
+    d3.csv("tranpose_confirmed.csv").then(function( data ) 
+    { 
+      TCdata=data;
+    //  console.log(TCdata);
+     // line();
+    })
+    d3.csv("transpose Recovered.csv").then(function( data ) 
+    { 
+      TRdata=data;
+    //  console.log(TCdata);
+      //line();
+    })
+    d3.csv("Transpose Deadts.csv").then(function( data ) 
+    { 
+      TDdata=data;
+    //  console.log(TCdata);
+     //Axis();
+     //line();
+     d3.select("#selectButton_1")
+      .selectAll('myOptions')
+     	.data(countrylist)
+      .enter()
+    	.append('option')
+      .text(function (d) { return d; }) 
+      .attr("value", function (d){ return d; }) 
+
+      d3.select("#selectButton")
+      .selectAll('myOptions')
+     	.data(countrylist)
+      .enter()
+    	.append('option')
+      .text(function (d) { return d; }) 
+      .attr("value", function (d) { return d; }) 
+    })
+    let group;
+    var myColor;
+    var x ,y;
+    function Axis()
+    {
+      var rectangle =svg_2.append("rect")
+                            .attr("x", 100)
+                            .attr("y", 15)
+                            .attr("width", 250)
+                            .attr("height", 100)
+                            .attr('fill', "none")
+                            .style("stroke","black")
+                            .attr("stroke-width", 2);
+
+      group = svg_2.append("g")
+      .attr("transform", "translate(65,10)")
+      .attr("height","700")
+      .attr("width","530")
+
+      myColor = d3.scaleOrdinal()
+      .domain(countrylist)
+      .range(d3.schemeSet2);
+
+      x = d3.scaleLinear()
+      .domain([0,92])
+      .range([ 0, 525 ]);
+
+      group.append("g")
+      .attr("transform", "translate(0,675)")
+      .call(d3.axisBottom(x)); 
+
+      svg_2.append("text")
+        .attr("x",303)
+        .attr("y",715)
+        .text("DAYS")
+        .attr("font-family", "sans-serif")
+        .style("font-size", "15px")
+        .attr("fill", "black")
+
+      am = document.getElementById("type").value;
+
+      svg_1.append('text')
+     .attr('class', 'title')
+     .attr('y', 24)
+     .html(am);
+
+      svg_2.append("text")
+        .attr("x",10)
+        .attr("y",19)
+        .text(am)
+        .attr("font-family", "sans-serif")
+        .style("font-size", "15px")
+        .attr("fill", "black")
+
+      if(am=="Cases")
+      {
+        y = d3.scaleLinear()
+      .domain( [0,839675])
+      .range([ 675, 0 ]);
+      }
+      if(am=="Deaths")
+      {
+         y = d3.scaleLinear()
+      .domain( [0,46583])
+      .range([ 675, 0 ]);
+      }
+      if(am=="Recovered")
+      {   
+       y = d3.scaleLinear()
+      .domain( [0,99400])
+      .range([ 675, 0 ]);
+      }
+
+      group.append("g")
+      .attr("transform", "translate(0,0)")
+      .call(d3.axisLeft(y));
+
+    }
+   // Axis();
+    function line()
+    {
+      Tempdata=[];
+      am = document.getElementById("type").value;
+      if(am=="Cases")
+      {
+         Tempdata=TCdata;
+      }
+      if(am=="Deaths")
+      {
+        Tempdata=TDdata;
+      }
+      if(am=="Recovered")
+      {
+         //console.log(rdata)
+         Tempdata=TRdata;
+      }
+     // console.log(Tempdata);
+      var keys =["Afghanistan"]
+      var keys_1=["Afghanistan"]//2nd text and line-1
+
+      var dots_1 = svg_2.selectAll(".mydots_1")
+         .data(keys_1);
+
+         dots_1.enter()
+         .append("circle").merge(dots_1)
+         .attr("cx", 115)
+         .attr("cy", 90) 
+         .attr("r", 7)
+         .style("fill", function(d){ return myColor(d)})
+         .classed("mydots_1",true);
+    
+       dots_1.exit().remove();
+      
+      var textLabels_1 = svg_2.selectAll(".mylabels_1")
+                .data(keys_1);
+         textLabels_1.enter()
+              .append("text")
+              .merge(textLabels_1)
+              .attr("x",130)
+                 .attr("y", 97 )
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "20px")
+                 .attr("fill", "black")
+                 .classed("mylabels_1",true);      
+
+        textLabels_1.exit().remove();          
+      
+      var dots = svg_2.selectAll(".mydots")
+         .data(keys);
+
+         dots.enter()
+         .append("circle").merge(dots)
+         .attr("cx", 115)
+         .attr("cy", 40) 
+         .attr("r", 7)
+         .style("fill", function(d){ return myColor(d)})
+         .classed("mydots",true);
+      
+        dots.exit().remove();  
+
+      var textLabels = svg_2.selectAll(".mylabels")
+                .data(keys);
+      textLabels.enter()
+              .append("text")
+              .merge(textLabels)
+              .attr("x",130)
+                 .attr("y", 47 )
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "20px")
+                 .attr("fill", "black")
+                 .classed("mylabels",true);
+      textLabels.exit().remove();        
+           
+      //Axis();
+      var line_2 = group
+      .append('g')
+      .append("path")
+        .datum(Tempdata)
+        .attr("d", d3.line()
+          .x(function(d) { return x(+d.Day) })
+          .y(function(d) { return y(+d.Afghanistan) })
+        )
+        .attr("stroke", function(d){ return myColor("Afghanistan") })
+        .style("stroke-width", 1.8)
+        .style("fill", "none")
+
+      var line_1 = group
+      .append('g')
+      .append("path")
+        .datum(Tempdata)
+        .attr("d", d3.line()
+          .x(function(d) { return x(+d.Day) })
+          .y(function(d) { return y(+d.Afghanistan) })
+        )
+        .attr("stroke", function(d){ return myColor("Afghanistan") })
+        .style("stroke-width", 1.8)
+        .style("fill", "none")
+
+      function update(selectedGroup) {
+        console.log(selectedGroup)
+        var dataFilter = Tempdata.map(function(d){return {time: d.Day, value:d[selectedGroup]} })
+       // console.log(dataFilter);
+        keys_1=[];
+        //console.log(keys_1)
+        keys_1.push(selectedGroup);
+
+        textLabels_1 = svg_2.selectAll(".mylabels_1")
+                .data(keys_1);
+         textLabels_1.enter()
+              .append("text")
+              .merge(textLabels_1)
+              .attr("x",130)
+                 .attr("y", 97 )
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "20px")
+                 .attr("fill", "black")
+                 .classed("mylabels_1",true);      
+
+        textLabels_1.exit().remove();         
+
+        dots_1 = svg_2.selectAll(".mydots_1")
+         .data(keys_1);
+
+         dots_1.enter()
+         .append("circle").merge(dots_1)
+         .attr("cx", 115)
+         .attr("cy", 90) 
+         .attr("r", 7)
+         .style("fill", function(d){ return myColor(d)})
+         .classed("mydots_1",true);
+    
+        dots_1.exit().remove();
+
+        line_1
+          .datum(dataFilter)
+          .transition()
+          .duration(1000)
+          .attr("d", d3.line()
+            .x(function(d) { return x(+d.time) })
+            .y(function(d) { return y(+d.value) })
+          )
+          .attr("stroke", function(d){ return myColor(selectedGroup) })
+        }
+        
+        function update_1(selectedGroup_1) {
+          //console.log(selectedGroup_1)
+        var dataFilter_1 = Tempdata.map(function(d){return {time: d.Day, value:d[selectedGroup_1]} })
+        //console.log(dataFilter_1);
+          keys = [];
+          keys.push(selectedGroup_1);
+
+       
+
+        dots = svg_2.selectAll(".mydots")
+         .data(keys);
+
+        dots.enter()
+         .append("circle").merge(dots)
+         .attr("cx", 115)
+         .attr("cy", 40) 
+         .attr("r", 7)
+         .style("fill", function(d){ return myColor(d)})
+         .classed("mydots",true);
+      
+        dots.exit().remove();    
+
+       var textLabels = svg_2.selectAll(".mylabels")
+                .data(keys);
+       textLabels.enter()
+              .append("text")
+              .merge(textLabels)
+              .attr("x",130)
+                 .attr("y", 47 )
+                 .text(function(d){ return d})
+                 
+                 .classed("mylabels",true);
+       textLabels.exit().remove();        
+           
+       line_2
+          .datum(dataFilter_1)
+          .transition()
+          .duration(1000)
+          .attr("d", d3.line()
+            .x(function(d) { return x(+d.time) })
+            .y(function(d) { return y(+d.value) })
+          )
+          .attr("stroke", function(d){ return myColor(selectedGroup_1) })
+        }
+        var selectedOption,selectedOption_1;
+        d3.select("#selectButton_1").on("change", function(d) {
+          selectedOption_1 = d3.select(this).property("value")
+         dum=[];
+         dum_3=[];
+         combinedData.filter(function (d){ if((d.Country) == selectedOption_1 ){
+         var a=+d.Recovered;
+         var b=+d.Deadths;
+         var c=(+d.Confirmed -(a+b));
+         dum= {Recovered : a,Deadths :b ,Active:c}
+         dum_3.push(c);
+         dum_3.push(b);
+         dum_3.push(a);
+         //dum.push("Recovered "= a,"Deadths" =b ,"Confirmed"=c)
+          }
+         
+
+          text_4 = svg.selectAll(".txt_4").data(dum_3)
+          text_4.enter()
+              .append("text")
+              .merge(text_4)
+              .attr("x",1510)
+                 .attr("y", function(d,i){return 50+40*i})
+                 .text(function(d){ console.log(d); return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "19px")
+                 .attr("fill", "black")
+                 .classed("txt_4",true);      
+
+        text_4.exit().remove();  
+
+          ke_2=[];
+        //console.log(keys_1)
+         console.log(ke_2);
+         console.log(selectedOption_1);
+          ke_2.push(selectedOption_1); 
+
+          text_2 = svg.selectAll(".mylab_2")
+                .data(ke_2);
+          text_2.enter()
+              .append("text")
+              .merge(text_2)
+              .attr("x",1100)
+                 .attr("y", 435 )
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "23px")
+                 .attr("fill", "black")
+                 .classed("mylab_2",true);      
+
+           text_2.exit().remove();    
+
+         })
+         console.log(dum)
+         update_3(dum);  
+         console.log(selectedOption_1)     
+         update_1(selectedOption_1)
+       })
+
+        d3.select("#selectButton").on("change", function(d) {
+         selectedOption = d3.select(this).property("value")
+         dum_1=[];
+         dum_2=[];
+         combinedData.filter(function (d){ if((d.Country) == selectedOption ){
+         var a=+d.Recovered;
+         var b=+d.Deadths;
+         var c=(+d.Confirmed -(a+b));
+         dum_1= {Recovered : a,Deadths :b ,Active:c}
+         dum_2.push(c);
+          dum_2.push(b);
+          dum_2.push(a);
+
+         //dum.push("Recovered "= a,"Deadths" =b ,"Confirmed"=c)
+          } 
+
+          text_3 = svg.selectAll(".txt_3").data(dum_2)
+          text_3.enter()
+              .append("text")
+              .merge(text_3)
+              .attr("x",660)
+                 .attr("y", function(d,i){return 50+40*i})
+                 .text(function(d){ console.log(d); return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "19px")
+                 .attr("fill", "black")
+                 .classed("txt_3",true);      
+
+        text_3.exit().remove();  
+
+
+       
+
+          ke_1=[];
+        //console.log(keys_1)
+         console.log(ke_1);
+         console.log(selectedOption);
+          ke_1.push(selectedOption); 
+
+          text_1 = svg.selectAll(".mylab_1")
+                .data(ke_1);
+          text_1.enter()
+              .append("text")
+              .merge(text_1)
+              .attr("x",150)
+                 .attr("y", 435 )
+                 .text(function(d){ return d})
+                 .attr("font-family", "sans-serif")
+                 .style("font-size", "23px")
+                 .attr("fill", "black")
+                 .classed("mylab_1",true);      
+
+           text_1.exit().remove();    
+
+
+         })
+         console.log(dum_1)
+         update_2(dum_1);  
+
+        console.log(selectedOption)     
+        update(selectedOption)
+       })
+   }
+
+    function play()
+    {
+      am = document.getElementById("type").value;
+      if(am=="Cases")
+      {
+         display(cdata)
+      }
+      if(am=="Deaths")
+      {
+         display(ddata)
+      }
+      if(am=="Recovered")
+      {
+         console.log(rdata)
+         display(rdata)
+      }
+      Axis();
+      line();
+      console.log(am);
+    }
+    
+    function reset(){
+            location.reload(); 
+     }
+    
+    function display( data ) 
+    {
+      
+      data.forEach( d => {
+     
+      d.colour = d3.hsl(Math.random()*360,0.75,0.75);
+      // console.log(d.colour)
+      });
+    // console.log(data)
+
+     let lastValues = {};
+
+     function _normalizeData()
+       {
+          const values = {};
+
+         const ret = [];
+         data.forEach( d => {
+         const name = d["Country"];
+            //console.log(name);
+            const lbl  = day;
+           // console.log(lbl)
+            const txt  = d[lbl];
+            //console.log(txt)  
+            let val  = 0;
+            if( txt != '..')
+                val = parseInt(txt);
+
+         
+          //console.log(val)      
+         //val = Math.round( val * 1e2) / 1e2; //round 2 digits
+
+         let lastValue = lastValues[ name ];
+         // console.log(lastValues[name])
+         if( lastValue == null )
+         lastValue = 0;
+         //console.log(name)
+         ret.push({
+           name     : name,
+           colour   : d.colour,
+           value    : val,
+           lastValue: lastValue
+            });
+            // console.log(ret)
+            //remember current value of the country
+            values[name] = val;
+         });
+    
+         lastValues = values;
+         //console.log(ret)
+         var A = ret.sort((a,b) => b.value - a.value).slice(0, top_n);
+         // console.log(A)
+         return ret.sort((a,b) => b.value - a.value).slice(0, top_n);
+        }
+       let yearSlice = _normalizeData();
+       yearSlice.forEach((d,i) => d.rank = i);
+     //  console.log(yearSlice)
+
+
+
+
+       let x = d3.scaleLinear()
+      .domain([0, d3.max(yearSlice, d => d.value)])
+      .range([margin.left, width-margin.right-65]);
+
+      let y = d3.scaleLinear()
+      .domain([top_n, 0])
+      .range([height-margin.bottom, margin.top]);
+
+       let xAxis = d3.axisTop()
+      .scale(x)
+      .ticks(width > 500 ? 5:2)
+      .tickSize(-(height-margin.top-margin.bottom))
+      .tickFormat(d => d3.format(',')(d));
+
+       svg_1.append('g')
+      .attr('class', 'axis xAxis')
+      .attr('transform', `translate(0, ${margin.top})`)
+      .call(xAxis)
+      .selectAll('.tick line')
+      .classed('origin', d => d == 0);
+      
+      svg_1.selectAll('rect.bar')
+      .data(yearSlice, d => d.name)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', x(0)+1)
+      .attr('width', d => x(d.lastValue)-x(0))
+      .attr('y', d => y(d.rank)+5)
+      .attr('height', y(1)-y(0)-barPadding)
+      .style('fill', d => d.colour);
+
+      svg_1.selectAll('text.label')
+      .data(yearSlice, d => d.name)
+      .enter()
+      .append('text')
+      .attr('class', 'label')
+      .attr('x', d => x(d.lastValue)-8)
+      .attr('y', d => y(d.rank)+5+((y(1)-y(0))/2)+1)
+      .style('text-anchor', 'end')
+      .html(d => d.name);
+
+      svg_1.selectAll('text.valueLabel')
+      .data(yearSlice, d => d.name)
+      .enter()
+      .append('text')
+      .attr('class', 'valueLabel')
+      .attr('x', d => x(d.lastValue)+5)
+      .attr('y', d => y(d.rank)+5+((y(1)-y(0))/2)+1)
+      .text(d => d.lastValue);
+
+
+      datee= []
+
+      let dayText = svg_1.selectAll('text.dayText').data(datee)
+      .enter()
+      .append('text')
+      .attr('class', 'dayText')    
+      .attr('x', width-margin.right)
+      .attr('y', height-40)
+      .style('text-anchor', 'end')
+      .style("font-size", "100px")
+      .style("opacity", 0.35)
+      .text(function(d){ return d});
+     // .html(~~intial);
+
+
+      let ticker = d3.interval(e => {
+
+      yearSlice = _normalizeData();
+
+      yearSlice.forEach((d,i) => d.rank = i);
+
+      //console.log('IntervalYear: ', yearSlice);
+
+      x.domain([0, d3.max(yearSlice, d => d.value)]); 
+
+     svg_1.select('.xAxis')
+     .transition()
+     .duration(tickDuration)
+     .ease(d3.easeLinear)
+     .call(xAxis);
+
+     const bars = svg_1.selectAll('.bar').data(yearSlice, d => d.name);
+
+     bars
+     .enter()
+     .append('rect')
+     .attr('class', d => `bar ${d.name.replace(/\s/g,'_')}`)
+     .attr('x', x(0)+1)
+     .attr( 'width', d => x(d.value)-x(0))
+     .attr('y', d => y(top_n+1)+5)
+     .attr('height', y(1)-y(0)-barPadding)
+     .style('fill', d => d.colour)
+     .transition()
+     .duration(tickDuration)
+     .ease(d3.easeLinear)
+     .attr('y', d => y(d.rank)+5);
+
+     bars
+     .transition()
+     .duration(tickDuration)
+     .ease(d3.easeLinear)
+     .attr('width', d => Math.max(0, x(d.value)-x(0)))
+     .attr('y', d => y(d.rank)+5);
+
+     bars
+     .exit()
+     .transition()
+     .duration(tickDuration)
+     .ease(d3.easeLinear)
+     .attr('width', d => Math.max(0, x(d.value)-x(0)))
+     .attr('y', d => y(top_n+1)+5)
+     .remove();
+
+     const labels = svg_1.selectAll('.label')
+     .data(yearSlice, d => d.name);
+
+     labels
+     .enter()
+     .append('text')
+     .attr('class', 'label')
+     .attr('x', d => x(d.value)-8)
+     .attr('y', d => y(top_n+1)+5+((y(1)-y(0))/2))
+     .style('text-anchor', 'end')
+     .html(d => d.name)    
+     .transition()
+     .duration(tickDuration)
+     .ease(d3.easeLinear)
+     .attr('y', d => y(d.rank)+5+((y(1)-y(0))/2)+1);
+
+
+     labels
+     .transition()
+     .duration(tickDuration)
+     .ease(d3.easeLinear)
+     .attr('x', d => x(d.value)-8)
+     .attr('y', d => y(d.rank)+5+((y(1)-y(0))/2)+1);
+
+     labels
+     .exit()
+     .transition()
+     .duration(tickDuration)
+     .ease(d3.easeLinear)
+     .attr('x', d => x(d.value)-8)
+     .attr('y', d => y(top_n+1)+5)
+     .remove();
+
+
+
+     const valueLabels = svg_1.selectAll('.valueLabel').data(yearSlice, d => d.name);
+
+     valueLabels
+      .enter()
+      .append('text')
+      .attr('class', 'valueLabel')
+      .attr('x', d => x(d.value)+5)
+      .attr('y', d => y(top_n+1)+5)
+      .text(d => d.value)
+      .transition()
+      .duration(tickDuration)
+      .ease(d3.easeLinear)
+      .attr('y', d => y(d.rank)+5+((y(1)-y(0))/2)+1);
+
+     valueLabels
+     .transition()
+     .duration(tickDuration)
+     .ease(d3.easeLinear)
+     .attr('x', d => x(d.value)+5)
+     .attr('y', d => y(d.rank)+5+((y(1)-y(0))/2)+1)
+     .tween("text", function(d) {
+      const i = d3.interpolateNumber(d.lastValue, d.value);
+      //return i(interpolator);
+      return function(t) {
+         let v = i(t);
+         if( v < 0 )
+             v = 0;
+         this.textContent = v.toFixed(2);
+      };
+    });
+
+
+    valueLabels
+    .exit()
+    .transition()
+    .duration(tickDuration)
+    .ease(d3.easeLinear)
+    .attr('x', d => x(d.value)+5)
+    .attr('y', d => y(top_n+1)+5)
+    .remove();
+
+   // dayText.html(~~day);
+
+   function formatDate(date) {
+
+    dat =new Date(date.setDate(date.getDate()));
+    dat2 =new Date(dat.setDate(date.getDate()+day-1));
+    var da = dat2.getDate();
+    if (da < 10) {
+                    da = "0" + da;
+                 }
+                var month = dat2.getMonth() + 1;
+                if (month < 10) {
+                    month = "0" + month;
+                }
+                var year = dat2.getFullYear();
+                return month + "/" + da + "/" + year;
+   
+   }
+   //console.log("range" m)
+  // console.log(day)
+   var Temp = formatDate(intial);
+   datee=[];
+   datee.push(Temp);
+   
+   dayText = svg_1.selectAll('text.dayText').data(datee)
+      .enter()
+      .append('text').merge(dayText)
+      .attr('class', 'dayText')    
+      .attr('x', width-margin.right)
+      .attr('y', height-40)
+      .style("font-size", "100px")
+     .style('text-anchor', 'end')
+     .style("opacity", 0.35)
+      .text(function(d){ return d});
+
+  // console.log(Temp)
+   day ++;
+    if(day > dayEnd) ticker.stop();
+    }, delayDuration);
+
+   }
+
+    </script>
+  </body>
+</html>   
